@@ -8,15 +8,16 @@ public class TransferService {
     }
 
     public TransferResponse transfer(Operation opOrigin, Operation opDestiny) {
-        ApiClient client = new ApiClient();
+        Client clientOrigin = new SantanderClient();
+        Client clientDestiny = new BCIClient();
 
-        boolean originResponse = client.verifyAccount(opOrigin);
-        boolean destinyResponse = client.verifyAccount(opDestiny);
+        boolean originResponse = clientOrigin.verifyAccount(opOrigin);
+        boolean destinyResponse = clientDestiny.verifyAccount(opDestiny);
 
         if (originResponse && destinyResponse) {
 
             ApiClientRequest clientRequest = new ApiClientRequest(opOrigin, opDestiny);
-            ApiClientResponse responseApi = client.send(clientRequest);
+            ApiClientResponse responseApi = clientOrigin.send(clientRequest);
 
             storage.save(responseApi.message());
 
