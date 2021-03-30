@@ -8,21 +8,25 @@ public class TransferService {
     }
 
     public TransferResponse transfer(Operation opOrigin, Operation opDestiny) {
-        Client clientOrigin = new SantanderClient();
-        Client clientDestiny = new BCIClient();
+        try{
+            Client clientOrigin = ClientFactory.build(opOrigin.bank());
+            Client clientDestiny = ClientFactory.build(opDestiny.bank());
 
-        boolean originResponse = clientOrigin.verifyAccount(opOrigin);
-        boolean destinyResponse = clientDestiny.verifyAccount(opDestiny);
+            boolean originResponse = clientOrigin.verifyAccount(opOrigin);
+            boolean destinyResponse = clientDestiny.verifyAccount(opDestiny);
 
-        if (originResponse && destinyResponse) {
+            if (originResponse && destinyResponse) {
 
-            ApiClientRequest clientRequest = new ApiClientRequest(opOrigin, opDestiny);
-            ApiClientResponse responseApi = clientOrigin.send(clientRequest);
+                ApiClientRequest clientRequest = new ApiClientRequest(opOrigin, opDestiny);
+                ApiClientResponse responseApi = clientOrigin.send(clientRequest);
 
-            storage.save(responseApi.message());
+                storage.save(responseApi.message());
 
-            return new TransferResponse(responseApi.code(), responseApi.message());
+                return new TransferResponse(responseApi.code(), responseApi.message());
+            }
+            return new TransferResponse(501, "The accounts aren't corrects");
+        }catch (Exception ex){
+            return new TransferResponse(ClientError.BANK_NOT_FOUND, "Bank not found");
         }
-        return new TransferResponse(501, "The accounts aren't corrects");
     }
 }
